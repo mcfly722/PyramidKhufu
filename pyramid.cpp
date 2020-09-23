@@ -1,3 +1,10 @@
+// good collection         http://countdowntothemessiah.com/Great_Pyramid/Davidsons_Pyramid_Records/Plate_Index.html
+// math                    http://thegreatpyramidofgiza.ca/book/TheGreatPyramidofGIZA.pdf
+// measurements            https://www.ronaldbirdsall.com/gizeh/petrie/c7.html#36
+// grand gallery           http://www.palarch.nl/wp-content/miatello_l_examining_the_grand_gallery_in_the_pyramd_of_khufu_and_its_features_pjaee_7_6_2010.pdf
+// linear sizes ang angles https://www.researchgate.net/figure/Inner-construction-of-the-Cheops-Pyramid-as-seen-from-the-east-with-the-linear_fig4_279852699
+// gallery niches          https://khufupyramid.dk/inside-dimensions/grand-gallery
+
 // https://docs.google.com/presentation/d/1Vrz6EZI0J074KENVji01OVkGS4UIhxKx8XNgDmAPu3I/edit
 // https://lah.ru/geometriya-velikoj-piramidy/
 
@@ -30,6 +37,17 @@ constexpr auto cubit = PI / 6;
 #define KING_CHAMBER_WIDTH                 10 * sqrt(5) * cubit / 2
 
 #define GALLERY_CEILING_FIRST_STEP_WIDTH   0.37f
+
+#define GALLERY_HOLE_SHORT_DEPTH           0.18f
+#define GALLERY_HOLE_LONG_DEPTH            0.18f
+#define GALLERY_HOLE_SHORT_WIDTH_MUL       1/6.526f      // coefficient
+#define GALLERY_HOLE_LONG_WIDTH_MUL        1.13f/6.526f  // coefficient
+#define GALLERY_HOLES_SPACE_MUL            2.198f/6.526f // coefficient
+
+#define GALLERY_NICHE_HEIGH_MUL            1.15f         // coefficient
+#define GALLERY_NICHE_WIDTH_MUL            0.53f         // coefficient
+
+
 
 constexpr auto shem = 6 * cubit / 5;
 
@@ -126,7 +144,7 @@ public:
 		ImGui::SetNextWindowSize(ImVec2(700.0f, 400.0f));
 		ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 
 		if (ImGui::TreeNode("Corridors"))
 		{
@@ -199,6 +217,17 @@ public:
 		}
 
 		ImGui::End();
+	}
+
+	void drawNiche(b2Vec2 bottomCenter,float width, float hight) {
+		b2Vec2 p1 = bottomCenter + b2Vec2(width / 2, -width * tan(ascendingAngle) / 2);
+		b2Vec2 p2 = bottomCenter + b2Vec2(-width / 2, width * tan(ascendingAngle) / 2);
+		b2Vec2 p3 = bottomCenter + b2Vec2(-width / 2, hight);
+		b2Vec2 p4 = bottomCenter + b2Vec2(width / 2, hight);
+		g_debugDraw.DrawSegment(p1, p2, b2Color(0, 0.5f, 0));
+		g_debugDraw.DrawSegment(p2, p3, b2Color(0, 0.5f, 0));
+		g_debugDraw.DrawSegment(p3, p4, b2Color(0, 0.5f, 0));
+		g_debugDraw.DrawSegment(p4, p1, b2Color(0, 0.5f, 0));
 	}
 
 	void Step(Settings& settings) override
@@ -277,6 +306,7 @@ public:
 
 		// queen chamber center
 		g_debugDraw.DrawSegment(p[30], p[26], b2Color(0, 0, 0.5f));
+		g_debugDraw.DrawSegment(p[30], b2Vec2(p[30].x,p[88].y), b2Color(0, 0, 0.5f));
 		g_debugDraw.DrawSegment(p[30], p[23], b2Color(0, 0, 0.5f));
 		g_debugDraw.DrawSegment(p[31], p[32], b2Color(0.5f, 0.5f, 0.5f));
 		g_debugDraw.DrawSegment(p[31], p[30], b2Color(0, 0, 0.5f));
@@ -345,6 +375,82 @@ public:
 			}
 		}
 
+		// gallery floor
+		// https://khufupyramid.dk/inside-dimensions/grand-gallery
+		{
+			g_debugDraw.DrawSegment(p[90], p[91], b2Color(0, 0.5f, 0));
+
+			float stepSize = 6.526f*sqrt((p[90] - p[91]).LengthSquared())/88.036f;
+			
+			for (int i = 0;i < 14;i++) {
+				char name[16];
+
+				// small hole
+				b2Vec2 step_i = p[91] + stepSize * i * b2Vec2(-cos(ascendingAngle), sin(ascendingAngle));
+
+				b2Vec2 p0 = step_i + cubit * b2Vec2(-sin(ascendingAngle), -cos(ascendingAngle));
+				g_debugDraw.DrawSegment(step_i, p0, b2Color(0, 0.5f, 0));
+
+				b2Vec2 p1 = step_i + GALLERY_HOLE_SHORT_DEPTH * b2Vec2(-sin(ascendingAngle), -cos(ascendingAngle));
+				b2Vec2 p3 = step_i + (GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize) * b2Vec2(-cos(ascendingAngle), sin(ascendingAngle));
+				b2Vec2 p2 = p3 + GALLERY_HOLE_SHORT_DEPTH * b2Vec2(-sin(ascendingAngle), -cos(ascendingAngle));
+
+				g_debugDraw.DrawSegment(step_i, p1, b2Color(0, 0.5f, 0.5f));
+				g_debugDraw.DrawSegment(p1, p2, b2Color(0, 0.5f, 0.5f));
+				g_debugDraw.DrawSegment(p2, p3, b2Color(0, 0.5f, 0.5f));
+				g_debugDraw.DrawSegment(p3, step_i, b2Color(0, 0.5f, 0.5f));
+
+				snprintf(name, sizeof(name), "%ds", i + 1);
+				g_debugDraw.DrawString(b2Vec2((step_i.x + p2.x) / 2, (step_i.y + p2.y) / 2), name);   // Short Hole
+				
+
+				// long hole
+				b2Vec2 p4 = p3 + GALLERY_HOLES_SPACE_MUL*stepSize * b2Vec2(-cos(ascendingAngle), sin(ascendingAngle));
+				b2Vec2 p5 = p4 + GALLERY_HOLE_LONG_DEPTH * b2Vec2(-sin(ascendingAngle), -cos(ascendingAngle));
+				b2Vec2 p7 = p4 + (GALLERY_HOLE_LONG_WIDTH_MUL * stepSize) * b2Vec2(-cos(ascendingAngle), sin(ascendingAngle));
+				b2Vec2 p6 = p7 + GALLERY_HOLE_LONG_DEPTH * b2Vec2(-sin(ascendingAngle), -cos(ascendingAngle));
+
+				g_debugDraw.DrawSegment(p4, p5, b2Color(0, 0.5f, 0.5f));
+				g_debugDraw.DrawSegment(p5, p6, b2Color(0, 0.5f, 0.5f));
+				g_debugDraw.DrawSegment(p6, p7, b2Color(0, 0.5f, 0.5f));
+				g_debugDraw.DrawSegment(p7, p4, b2Color(0, 0.5f, 0.5f));
+
+				snprintf(name, sizeof(name), "%dL", i + 1);
+				g_debugDraw.DrawString(b2Vec2((p4.x + p6.x) / 2, (p4.y + p6.y) / 2), name);   // Long Hole
+
+				if (i > 0) {
+					// short cutting
+					b2Vec2 p8 = step_i + GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize * b2Vec2(0, 0.19f);
+					b2Vec2 p9 = p8 + (GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize) * b2Vec2(-cos(ascendingAngle), sin(ascendingAngle));
+					b2Vec2 p10 = p9 + GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize * b2Vec2(0, 0.38f);
+					b2Vec2 p11 = p8 + GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize * b2Vec2(0, 0.38f);
+					g_debugDraw.DrawSegment(p8, p9, b2Color(0, 0.5f, 0.5f));
+					g_debugDraw.DrawSegment(p9, p10, b2Color(0, 0.5f, 0.5f));
+					g_debugDraw.DrawSegment(p10, p11, b2Color(0, 0.5f, 0.5f));
+					g_debugDraw.DrawSegment(p11, p8, b2Color(0, 0.5f, 0.5f));
+
+					if (i < 13) {
+						// long cutting
+						b2Vec2 p12 = p4 + GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize * b2Vec2(0, 0.19f);
+						b2Vec2 p13 = p12 + (GALLERY_HOLE_LONG_WIDTH_MUL * stepSize) * b2Vec2(-cos(ascendingAngle), sin(ascendingAngle));
+						b2Vec2 p14 = p13 + GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize * b2Vec2(0, 0.38f);
+						b2Vec2 p15 = p12 + GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize * b2Vec2(0, 0.38f);
+						g_debugDraw.DrawSegment(p12, p13, b2Color(0, 0.5f, 0.5f));
+						g_debugDraw.DrawSegment(p13, p14, b2Color(0, 0.5f, 0.5f));
+						g_debugDraw.DrawSegment(p14, p15, b2Color(0, 0.5f, 0.5f));
+						g_debugDraw.DrawSegment(p15, p12, b2Color(0, 0.5f, 0.5f));
+
+						float w = GALLERY_NICHE_WIDTH_MUL * (GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize);
+						float h = GALLERY_NICHE_HEIGH_MUL * (GALLERY_HOLE_SHORT_WIDTH_MUL * stepSize);
+
+						drawNiche(b2Vec2((p3.x + step_i.x) / 2, (p3.y + step_i.y) / 2), w, h);
+						drawNiche(b2Vec2((p7.x + p4.x) / 2, (p7.y + p4.y) / 2), w, h);
+					}
+				}
+			}
+
+		}
+
 		Test::Step(settings);
 	}
 
@@ -369,7 +475,7 @@ private:
 	float queenAngle = PI / 6;
 
 	float galleryCeilingOffset = 1;
-	int leftGalleryWallMode  = Parallel;
+	int leftGalleryWallMode  = Horizontal;      // http://thepyramids.org/images/giza/231_026_great_pyramid.jpg
 	int rightGalleryWallMode = Parallel;
 
 	b2BodyDef bd;
@@ -378,7 +484,7 @@ private:
 
 	bool needToReset = false;
 
-	b2Vec2 p[89];
+	b2Vec2 p[92];
 
 	void buildPyramid(b2Body* body) {
 		
@@ -500,6 +606,13 @@ private:
 			p[85] = p[54] - galleryCeilingOffset * b2Vec2(cos(ceilingAngle), sin(ceilingAngle));
 		}
 
+		// gallery floor
+		{
+			p[90] = p[23] + b2Vec2(0, cubit / cos(ascendingAngle));
+			p[91] = p[55] + b2Vec2(0, cubit / cos(ascendingAngle));
+
+		}
+
 		drawLine(body, p[8], p[11]);
 		drawLine(body, p[10], p[12]);
 		drawLine(body, p[8], p[13]);
@@ -560,6 +673,8 @@ private:
 		}
 
 		// Gallery
+		// https://upload.wikimedia.org/wikipedia/commons/c/c6/PSM_V80_D462_Longitudinal_sections_of_the_grand_gallery.png
+
 		{
 			// Right gallery wall
 			{
