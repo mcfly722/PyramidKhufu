@@ -1,5 +1,5 @@
 # Pyramid Khufu
-Front Model of Khufu Pyramid to reseach angles
+Front Model of Khufu Pyramid in Box2d engine to reseach angles and wall reflections
 
 ## Compilation:
 1. Download Box2d engine
