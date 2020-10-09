@@ -1,4 +1,4 @@
-# PyramidKhufu
+# Pyramid Khufu
 Front Model of Khufu Pyramid to reseach angles
 
 ## Compilation:
