@@ -56,7 +56,7 @@ constexpr auto angle0 = 0.470322600181172;      //26°56'51"  = 0.470322600181172
 
 constexpr auto defaultAscendingAngle = 0.470322600181172;      //26°56'51"  = 0.470322600181172
 constexpr auto defaultDescendingAngle = 0.46157171323714485;   //26°26'46"
-constexpr auto defaultAngleRange = 1 * PI / 180;
+constexpr auto defaultAngleRange =  PI / 180;
 
 b2Vec2 crossPoint(b2Vec2 p1, b2Vec2 p2, b2Vec2 p3, b2Vec2 p4) {
 	return b2Vec2(
@@ -87,11 +87,18 @@ public:
 		{
 			if (ImGui::SliderAngle("Ascending Angle  ", &ascendingAngle, (defaultAscendingAngle - defaultAngleRange) * 180 / PI, (defaultAscendingAngle + defaultAngleRange) * 180 / PI, "%0f deg")) {
 				needToReset = true;
+				//angle2minutesAndSeconds
 			}
+			char str[30];
+			angle2minutesAndSeconds(str, sizeof(str), "Ascending angle = ", ascendingAngle);
+			ImGui::Text(str);
 
 			if (ImGui::SliderAngle("Descending Angle", &descendingAngle, (defaultDescendingAngle - defaultAngleRange) * 180 / PI, (defaultDescendingAngle + defaultAngleRange) * 180 / PI, "%0f deg")) {
 				needToReset = true;
 			}
+			angle2minutesAndSeconds(str, sizeof(str), "Descending angle = ", descendingAngle);
+			ImGui::Text(str);
+
 
 			if (ImGui::Checkbox("Show Corridors Problem", &showCorridorsCrossingProblem)) {
 				needToReset = true;

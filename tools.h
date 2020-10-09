@@ -77,6 +77,16 @@ public:
 	}
 };
 
+inline void angle2minutesAndSeconds(char *buffer,int size, char *prefix,float angle) {
+	float a = 180 * angle / PI;
+	
+	int degrees = floor(a);
+	int minutes = 60.f * (a - floor(a));
+	int seconds = floor((a-floor(a) - (float)minutes/60.f)*3600.f);
+
+	snprintf(buffer, size, "%s %d.%d'%d\"", prefix,degrees,minutes,seconds);
+}
+
 inline b2Vec2 reflect(b2Vec2 vector, b2Vec2 normal) {
 	float num2 = vector.x * normal.x + vector.y * normal.y;
 	return b2Vec2(vector.x - 2.0f * num2 * normal.x, vector.y - 2.0f * num2 * normal.y);
@@ -85,8 +95,8 @@ inline void drawPoint(b2Vec2 point, char* name) {
 	g_debugDraw.DrawCircle(point, 0.1f, b2Color(1, 1, 1));
 	g_debugDraw.DrawString(point, name);
 }
-inline void drawRay(b2World* m_world, Ray ray, b2Color color) {
-
+inline float drawRay(b2World* m_world, Ray ray, b2Color color) {
+	float distance = 0;
 	// initial source is little bit different to start raycasting from corner
 
 	b2Vec2 source = b2Vec2(ray.from.x + 0.01f * cos(ray.angle), ray.from.y + 0.01f * sin(ray.angle));
@@ -110,6 +120,7 @@ inline void drawRay(b2World* m_world, Ray ray, b2Color color) {
 			}
 			else {
 				g_debugDraw.DrawSegment(source, callback.m_point, color);
+				distance += sqrt((callback.m_point - source).LengthSquared());
 				//g_debugDraw.DrawSegment(callback.m_point, callback.m_point + 0.5 * callback.m_normal, b2Color(1, 0, 0)); // normal
 
 				char str[16];
@@ -134,6 +145,7 @@ inline void drawRay(b2World* m_world, Ray ray, b2Color color) {
 			break;
 		}
 	}
+	return distance;
 }
 inline void drawRainbowRay(b2World* m_world,b2Vec2 start, b2Vec2 end, float angle, int rays) {
 	for (float i = 0;i < rays;i++) {
@@ -171,7 +183,7 @@ inline b2Vec2 drawPath(b2Body* body, b2Vec2 startPoint, NextTo* path) {
 	} while (!((path[i].v.x == 0) && (path[i].v.y == 0)));
 	return current;
 };
-inline void drawLine(b2Body* body, b2Vec2 startPoint, b2Vec2 endPoint) {
+inline b2Vec2 drawLine(b2Body* body, b2Vec2 startPoint, b2Vec2 endPoint) {
 	b2EdgeShape shape;
 	b2FixtureDef fd;
 	fd.shape = &shape;
@@ -179,8 +191,9 @@ inline void drawLine(b2Body* body, b2Vec2 startPoint, b2Vec2 endPoint) {
 	fd.friction = 0.6f;
 	shape.SetTwoSided(startPoint, endPoint);
 	body->CreateFixture(&fd);
+	return endPoint;
 };
-inline void drawAbsorbLine(b2Body* body, b2Vec2 startPoint, b2Vec2 endPoint) {
+inline b2Vec2 drawAbsorbLine(b2Body* body, b2Vec2 startPoint, b2Vec2 endPoint) {
 	b2EdgeShape shape;
 	b2FixtureDef fd;
 	fd.shape = &shape;
@@ -189,6 +202,7 @@ inline void drawAbsorbLine(b2Body* body, b2Vec2 startPoint, b2Vec2 endPoint) {
 	fd.userData = "absorb";
 	shape.SetTwoSided(startPoint, endPoint);
 	body->CreateFixture(&fd);
+	return endPoint;
 };
 inline void drawAbsorbContainer(b2Body* body, b2Vec2 startPoint, b2Vec2 endPoint) {
 	constexpr auto absorbContainerDepth = 0.4f;
