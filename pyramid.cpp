@@ -507,8 +507,10 @@ private:
 		p[5] = b2Vec2(0, p[4].y);
 		p[6] = p[0] + b2Vec2(p[3].x, KINGS_CHAMBER_LEVEL);
 		p[7] = p[0] + b2Vec2(0, KINGS_CHAMBER_LEVEL);
-		p[8] = b2Vec2((p[6].x + p[5].x) / 2, (p[6].y + p[5].y) / 2);
+		
 		p[9] = crossPoint(p[1], p[2], p[5], p[6]);
+		p[8] = p[9]+28.21f*b2Vec2(-cos(descendingAngle),-sin(descendingAngle));
+
 		p[11] = crossPoint(p[1], p[2], p[8], p[8] + 100 * b2Vec2(cos(descendingAngle), sin(descendingAngle)));
 		p[13] = p[8] + b2Vec2(-77.13f * cos(descendingAngle), -77.13f * sin(descendingAngle));
 		p[14] = p[13] + 1.2f * b2Vec2(-sin(descendingAngle), cos(descendingAngle));
